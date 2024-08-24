@@ -171,7 +171,6 @@ const handleSubmit = (values, process, props, stripe, submitting, setSubmitting)
   if (submitting) {
     return;
   }
-  
   setSubmitting(true);
 
   const {
@@ -193,83 +192,33 @@ const handleSubmit = (values, process, props, stripe, submitting, setSubmitting)
     setPageData,
     sessionStorageKey,
   } = props;
-  const { card, message, paymentMethod: selectedPaymentMethod, formValues } = values;
-  const { saveAfterOnetimePayment: saveAfterOnetimePaymentRaw } = formValues;
-
-  const saveAfterOnetimePayment =
-    Array.isArray(saveAfterOnetimePaymentRaw) && saveAfterOnetimePaymentRaw.length > 0;
-  const selectedPaymentFlow = paymentFlow(selectedPaymentMethod, saveAfterOnetimePayment);
-  const hasDefaultPaymentMethodSaved = hasDefaultPaymentMethod(stripeCustomerFetched, currentUser);
-  const stripePaymentMethodId = hasDefaultPaymentMethodSaved
-    ? currentUser?.stripeCustomer?.defaultPaymentMethod?.attributes?.stripePaymentMethodId
-    : null;
-
-  // If paymentIntent status is not waiting user action,
-  // confirmCardPayment has been called previously.
-  const hasPaymentIntentUserActionsDone =
-    paymentIntent && STRIPE_PI_USER_ACTIONS_DONE_STATUSES.includes(paymentIntent.status);
-
-  const requestPaymentParams = {
-    pageData,
-    speculatedTransaction,
-    stripe,
-    card,
-    billingDetails: getBillingDetails(formValues, currentUser),
-    message,
-    paymentIntent,
-    hasPaymentIntentUserActionsDone,
-    stripePaymentMethodId,
-    process,
-    onInitiateOrder,
-    onConfirmCardPayment,
-    onConfirmPayment,
-    onSendMessage,
-    onSavePaymentMethod,
-    sessionStorageKey,
-    stripeCustomer: currentUser?.stripeCustomer,
-    isPaymentFlowUseSavedCard: selectedPaymentFlow === USE_SAVED_CARD,
-    isPaymentFlowPayAndSaveCard: selectedPaymentFlow === PAY_AND_SAVE_FOR_LATER_USE,
-    setPageData,
-  };
-
-  const shippingDetails = getShippingDetailsMaybe(formValues);
-  // Note: optionalPaymentParams contains Stripe paymentMethod,
-  // but that can also be passed on Step 2
-  // stripe.confirmCardPayment(stripe, { payment_method: stripePaymentMethodId })
-  const optionalPaymentParams =
-    selectedPaymentFlow === USE_SAVED_CARD && hasDefaultPaymentMethodSaved
-      ? { paymentMethod: stripePaymentMethodId }
-      : selectedPaymentFlow === PAY_AND_SAVE_FOR_LATER_USE
-      ? { setupPaymentMethodForSaving: true }
-      : {};
-
-  // These are the order parameters for the first payment-related transition
-  // which is either initiate-transition or initiate-transition-after-enquiry
-  const orderParams = getOrderParams(pageData, shippingDetails, optionalPaymentParams, config);
-
-  // There are multiple XHR calls that needs to be made against Stripe API and Sharetribe Marketplace API on checkout with payments
-  processCheckoutWithPayment(orderParams, requestPaymentParams)
-    .then(response => {
-      const { orderId, messageSuccess, paymentMethodSaved } = response;
-      setSubmitting(false);
-
-      const initialMessageFailedToTransaction = messageSuccess ? null : orderId;
-      const orderDetailsPath = pathByRouteName('OrderDetailsPage', routeConfiguration, {
-        id: orderId.uuid,
-      });
-      const initialValues = {
-        initialMessageFailedToTransaction,
-        savePaymentMethodFailed: !paymentMethodSaved,
-      };
-
-      setOrderPageInitialValues(initialValues, routeConfiguration, dispatch);
-      onSubmitCallback();
-      history.push(orderDetailsPath);
-    })
-    .catch(err => {
-      console.error(err);
-      setSubmitting(false);
-    });
+  
+  fetch('/create-checkout-session', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      orderData: pageData.orderData,
+      listingId: pageData.listing.id.uuid,
+      // Add any other necessary parameters
+    }),
+  })
+  .then(response => response.json())
+  .then(session => {
+    // Redirect to Stripe Checkout
+    return stripe.redirectToCheckout({ sessionId: session.id });
+  })
+  .then(result => {
+    if (result.error) {
+      alert(result.error.message);
+    }
+    setSubmitting(false);
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    setSubmitting(false);
+  });
 };
 
 const onStripeInitialized = (stripe, process, props) => {
