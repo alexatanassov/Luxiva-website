@@ -171,6 +171,7 @@ const handleSubmit = (values, process, props, stripe, submitting, setSubmitting)
   if (submitting) {
     return;
   }
+  
   setSubmitting(true);
 
   const {
