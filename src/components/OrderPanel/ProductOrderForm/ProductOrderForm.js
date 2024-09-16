@@ -7,6 +7,10 @@ import { propTypes } from '../../../util/types';
 import { numberAtLeast, required } from '../../../util/validators';
 import { PURCHASE_PROCESS_NAME } from '../../../transactions/transaction';
 
+import { loadStripe } from '@stripe/stripe-js';
+
+const stripePromise = loadStripe('pk_test_51PTWcfLv7h3gK4Y3dXypSeFXrG2c8PaecXZIJzRby72DtrgnFazJNIjBgxhicYTxrF6QTwrZSk4euLAWfQRhBrKr001E9gtOXA');
+
 import {
   Form,
   FieldSelect,
