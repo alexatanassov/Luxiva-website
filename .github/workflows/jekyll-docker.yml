@@ -25,6 +25,9 @@ jobs:
       with:
         python-version: '3.x'
 
+    - name: Install virtualenv
+      run: pip3 install virtualenv  # Install virtualenv if it's missing
+
     # Create the Python virtual environment
     - name: Create Python virtual environment
       run: |
@@ -32,7 +35,7 @@ jobs:
         ls venv/bin  # Check if the virtual environment is created properly
         source venv/bin/activate
         pip3 install -r ./requirements.txt
-        
+         
     - name: Remove containerd package
       run: sudo apt-get remove -y containerd
 
