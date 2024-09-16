@@ -25,11 +25,17 @@ jobs:
       with:
         python-version: '3.12.5'
 
+    # Create the Python virtual environment
+    - name: Create Python virtual environment
+      run: |
+        python3 -m venv ${{ github.workspace }}/venv
+        ls -alh ${{ github.workspace }}/venv  # List the contents to ensure venv is created correctly
+
+    # Activate the virtual environment and install dependencies
     - name: Install Python dependencies
       run: |
-        python3 -m venv ${{ github.workspace }}/venv  # Create a virtual environment in the project directory
-        source ${{ github.workspace }}/venv/bin/activate  # Activate the virtual environment
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi  # Install dependencies if requirements.txt exists
+        source ${{ github.workspace }}/venv/bin/activate
+        pip install -r ./requirements.txt || echo "No requirements file, skipping."
         
     - name: Remove containerd package
       run: sudo apt-get remove -y containerd
