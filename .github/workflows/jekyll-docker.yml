@@ -27,7 +27,7 @@ jobs:
 
     - name: Install Python dependencies
       run: |
-        pip install -r /srv/jekyll/requirements.txt  # Only if you have a requirements.txt
+        pip install -r ./requirements.txt
         
     - name: Remove containerd package
       run: sudo apt-get remove -y containerd
