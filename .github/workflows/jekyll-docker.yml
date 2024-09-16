@@ -13,6 +13,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    
+    - name: Set up Python 3
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    
     - name: Build the site in the jekyll/builder container
       run: |
         docker run \
