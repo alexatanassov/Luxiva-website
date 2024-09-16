@@ -24,19 +24,6 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: '3.x'
-
-    - name: Install virtualenv
-      run: python -m pip install virtualenv  # Install virtualenv if it's missing
-
-    # Create the Python virtual environment
-    - name: Create Python virtual environment
-      run: |
-        python -m venv ~/venv
-        sleep 5  # Add a short delay to ensure the environment is fully created
-        ls ~/venv/  # Debug: Check if venv directory is created
-        source venv/bin/activate
-        python -m pip install --upgrade pip  # Upgrade pip to avoid any issues
-        pip install -r ./requirements.txt
          
     - name: Remove containerd package
       run: sudo apt-get remove -y containerd
@@ -62,4 +49,12 @@ jobs:
       run: |
         docker run \
         -v ${{ github.workspace }}:/srv/jekyll -v ${{ github.workspace }}/_site:/srv/jekyll/_site \
-        jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && jekyll build --future --trace"
+        jekyll/builder:latest /bin/bash -c "
+          apt-get update && \
+          apt-get install -y python3 python3-venv && \
+          python3 -m venv /srv/jekyll/venv && \
+          source /srv/jekyll/venv/bin/activate && \
+          pip install --upgrade pip && \
+          pip install -r /srv/jekyll/requirements.txt && \
+          chmod -R 777 /srv/jekyll && \
+          jekyll build --future --trace"
