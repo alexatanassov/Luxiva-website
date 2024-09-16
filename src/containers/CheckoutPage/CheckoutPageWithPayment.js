@@ -168,6 +168,8 @@ export const loadInitialDataForStripePayments = ({
 };
 
 const handleSubmit = (values, process, props, stripe, submitting, setSubmitting) => {
+  console.log('Initiating Stripe Checkout session'); 
+  
   if (submitting) {
     return;
   }
@@ -192,27 +194,24 @@ const handleSubmit = (values, process, props, stripe, submitting, setSubmitting)
     setPageData,
     sessionStorageKey,
   } = props;
-  
-  fetch('/create-checkout-session', {
+
+  const priceId = pageData?.listing?.attributes?.publicData?.priceId; // Ensure priceId is available
+
+  if (!priceId) {
+    console.error("Price ID not found");
+    setSubmitting(false);
+    return;
+  }
+
+  fetch('http://127.0.0.1:4242/create-checkout-session', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      orderData: pageData.orderData,
-      listingId: pageData.listing.id.uuid,
-      // Add any other necessary parameters
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ priceId }),
   })
   .then(response => response.json())
-  .then(session => {
-    // Redirect to Stripe Checkout
-    return stripe.redirectToCheckout({ sessionId: session.id });
-  })
+  .then(session => stripe.redirectToCheckout({ sessionId: session.id }))
   .then(result => {
-    if (result.error) {
-      alert(result.error.message);
-    }
+    if (result.error) alert(result.error.message);
     setSubmitting(false);
   })
   .catch(error => {

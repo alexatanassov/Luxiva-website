@@ -26,6 +26,30 @@ import css from './ProductOrderForm.module.css';
 // Note: input element could allow ordering bigger quantities
 const MAX_QUANTITY_FOR_DROPDOWN = 100;
 
+const createCheckoutSession = async (priceId) => {
+  try {
+    const response = await fetch('/create-checkout-session', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ priceId }),
+    });
+
+    const session = await response.json();
+    if (session.id) {
+      // Redirect to Stripe Checkout page
+      const stripe = await stripePromise;
+      await stripe.redirectToCheckout({ sessionId: session.id });
+    } else {
+      console.error('Error creating Stripe session:', session);
+    }
+  } catch (error) {
+    console.error('Error in createCheckoutSession:', error);
+  }
+};
+
+
 const handleFetchLineItems = ({
   quantity,
   deliveryMethod,
