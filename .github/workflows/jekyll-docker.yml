@@ -25,10 +25,14 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Install Docker
+    - name: Remove containerd package
+      run: sudo apt-get remove -y containerd
+
+    - name: Install Docker and containerd.io
       run: |
         sudo apt-get update
-        sudo apt-get install -y docker.io
+        sudo apt-get install -y containerd.io=1.2.13-1
+        sudo apt-get install -y docker-ce docker-ce-cli
 
     - name: Build the site in the jekyll/builder container
       run: |
