@@ -20,15 +20,11 @@ jobs:
         ruby-version: '3.2.5'
         bundler-cache: true  # Cache gems automatically
     
-    - name: Set up Python 3.12.5
+    - name: Set up Python 3
       uses: actions/setup-python@v2
       with:
-        python-version: '3.12.5'
-
-    - name: Install Python dependencies
-      run: |
-        pip install -r /srv/jekyll/requirements.txt  # Only if you have a requirements.txt
-        
+        python-version: '3.x'
+         
     - name: Remove containerd package
       run: sudo apt-get remove -y containerd
 
@@ -53,4 +49,12 @@ jobs:
       run: |
         docker run \
         -v ${{ github.workspace }}:/srv/jekyll -v ${{ github.workspace }}/_site:/srv/jekyll/_site \
-        jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && jekyll build --future --trace"
+        jekyll/builder:latest /bin/bash -c "
+          sudo apt-get update && \
+          sudo apt-get install -y python3 python3-venv && \
+          python3 -m venv /srv/jekyll/venv && \
+          source /srv/jekyll/venv/bin/activate && \
+          pip install --upgrade pip && \
+          pip install -r /srv/jekyll/requirements.txt && \
+          chmod -R 777 /srv/jekyll && \
+          jekyll build --future --trace"
