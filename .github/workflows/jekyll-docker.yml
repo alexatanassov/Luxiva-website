@@ -25,13 +25,11 @@ jobs:
       with:
         python-version: '3.12.5'
 
-    - name: Create Python Virtual Environment
-      run: python3 -m venv /srv/jekyll/venv
-
-    - name: Install Python dependencies
+    - name: Set up Python virtual environment
       run: |
-        source /srv/jekyll/venv/bin/activate
-        pip install -r /srv/jekyll/requirements.txt  # Add this only if you have a requirements.txt
+        python3 -m venv ${{ github.workspace }}/venv
+        source ${{ github.workspace }}/venv/bin/activate
+        pip install -r /srv/jekyll/requirements.txt
 
     - name: Remove containerd package
       run: sudo apt-get remove -y containerd
