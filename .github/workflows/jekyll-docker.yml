@@ -13,6 +13,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Set up Ruby 3.x
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.x'
+        bundler-cache: true  # Cache gems automatically
     
     - name: Set up Python 3
       uses: actions/setup-python@v2
