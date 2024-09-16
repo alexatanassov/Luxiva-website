@@ -13,8 +13,44 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Set up Ruby 3.2.5
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.2.5'
+        bundler-cache: true  # Cache gems automatically
+    
+    - name: Set up Python 3.12.5
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.12.5'
+
+    - name: Install Python dependencies
+      run: |
+        pip install -r /srv/jekyll/requirements.txt  # Only if you have a requirements.txt
+        
+    - name: Remove containerd package
+      run: sudo apt-get remove -y containerd
+
+    - name: Install Docker and containerd.io
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+            apt-transport-https \
+            ca-certificates \
+            curl \
+            gnupg-agent \
+            software-properties-common
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+        sudo add-apt-repository \
+            "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+            $(lsb_release -cs) \
+            stable"
+        sudo apt-get update
+        sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+
     - name: Build the site in the jekyll/builder container
       run: |
         docker run \
         -v ${{ github.workspace }}:/srv/jekyll -v ${{ github.workspace }}/_site:/srv/jekyll/_site \
-        jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && jekyll build --future"
+        jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && jekyll build --future --trace"
