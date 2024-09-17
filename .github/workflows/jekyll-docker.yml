@@ -45,17 +45,16 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 
-    # Build the custom Docker image
-    - name: Build custom Docker image with Python
-      run: docker build -t custom-jekyll-python-image .
-
-    # Run the Docker container with Jekyll and Python virtual environment
-    - name: Run Jekyll build in custom Docker container
+    - name: Build the site in the jekyll/builder container
       run: |
         docker run \
-        -v ${{ github.workspace }}:/srv/jekyll \
-        -v ${{ github.workspace }}/_site:/srv/jekyll/_site \
-        custom-jekyll-python-image /bin/bash -c "
+        -v ${{ github.workspace }}:/srv/jekyll -v ${{ github.workspace }}/_site:/srv/jekyll/_site \
+        jekyll/builder:latest /bin/bash -c "
+          apt-get update && \
+          apt-get install -y python3 python3-venv && \
+          python3 -m venv /srv/jekyll/venv && \
           source /srv/jekyll/venv/bin/activate && \
-          pip install -r /srv/jekyll/requirements.txt && \
+          pip install --upgrade pip && \
+          if [ -f /srv/jekyll/requirements.txt ]; then pip install -r /srv/jekyll/requirements.txt; fi && \
+          chmod -R 777 /srv/jekyll && \
           jekyll build --future --trace"
